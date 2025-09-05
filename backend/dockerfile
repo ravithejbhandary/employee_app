@@ -1,0 +1,31 @@
+# Build stage
+FROM golang:1.24-alpine AS builder
+
+WORKDIR /app
+
+# Copy go.mod and go.sum, then download deps
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy source code
+COPY backend ./backend
+COPY third_party ./third_party
+
+WORKDIR /app/backend
+
+# Build the binary
+RUN go build -o server ./main.go ./server.go
+
+# Runtime stage
+FROM alpine:3.19
+
+WORKDIR /root/
+
+# Copy binary from builder
+COPY --from=builder /app/backend/server .
+
+# Expose gRPC (50051) and HTTP-Gateway (8080)
+EXPOSE 50051 8080
+
+# Run the server
+CMD ["./server"]

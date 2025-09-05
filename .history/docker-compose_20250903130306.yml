@@ -1,0 +1,37 @@
+services:
+  # gRPC server
+  grpc-server:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile   # note: "Dockerfile" should be capitalized if that's your filename
+    ports:
+      - "50051:50051"   # gRPC port
+      - "8080:8080"     # REST gateway port
+    depends_on:
+      - mysql-db
+    networks:
+      - app-network
+
+  # MySQL database
+  mysql-db:
+    image: mysql:latest
+    container_name: mysql-db
+    ports:
+      - "3333:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_DATABASE: employee_db
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - app-network
+
+# Persistent database volume
+volumes:
+  db-data:
+
+# Custom bridge network
+networks:
+  app-network:
+    driver: bridge

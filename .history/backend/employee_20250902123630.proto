@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package employee;
+option go_package = "./";
+
+service EmployeeService {
+  rpc GetEmployees (Empty) returns (EmployeeList) {}
+  rpc CreateEmployee (Employee) returns (Employee) {}
+  rpc UpdateEmployee (Employee) returns (Employee) {}
+  rpc DeleteEmployee (EmployeeID) returns (Empty) {}
+}
+
+message Empty {}
+
+message EmployeeID {
+  int32 id = 1;
+}
+
+message Employee {
+  int32 id = 1;
+  string first_name = 2;
+  string last_name = 3;
+  string email = 4;
+  string position = 5;
+  string department = 6;
+}
+
+message EmployeeList {
+  repeated Employee employees = 1;
+}

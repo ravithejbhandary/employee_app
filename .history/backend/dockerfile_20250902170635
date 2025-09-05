@@ -1,0 +1,21 @@
+# backend/dockerfile
+FROM golang:1.20-alpine AS builder
+WORKDIR /app
+
+# Copy go.mod and go.sum from root
+COPY ../go.mod ../go.sum ./
+
+# Download dependencies
+RUN go mod download
+
+# Copy backend source code
+COPY . .
+
+# Build server binary
+RUN go build -o server main.go server.go
+
+# Final stage
+FROM alpine:latest
+WORKDIR /app
+COPY --from=builder /app/server .
+CMD ["./server"]

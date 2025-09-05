@@ -1,0 +1,19 @@
+services:
+  # gRPC server
+  grpc-server:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "50051:50051"
+      - "8080:8080"
+    environment:
+      - MONGO_ATLAS_URI=${MONGO_ATLAS_URI} # Pass the connection string as an environment variable
+    networks:
+      - app-network
+
+# No MongoDB service is needed here
+
+networks:
+  app-network:
+    driver: bridge

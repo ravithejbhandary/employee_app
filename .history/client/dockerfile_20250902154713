@@ -1,0 +1,31 @@
+ Stage 1: The Builder
+# Use a Go image to compile the application.
+FROM golang:1.22-alpine AS builder
+
+# Set the working directory inside the container.
+WORKDIR /app
+
+# Copy the go.mod and go.sum files to the working directory.
+COPY go.mod go.sum ./
+
+# Download all Go module dependencies.
+RUN go mod download
+
+# Copy the rest of the application source code.
+COPY . .
+
+# Build the Go client application, creating a standalone binary named 'main'.
+RUN go build -o main ./main.go
+
+# Stage 2: The Final Image
+# Use a minimal Alpine image to create a small, secure final container.
+FROM alpine:latest
+
+# Set the working directory for the final container.
+WORKDIR /app
+
+# Copy the compiled binary from the builder stage into the final image.
+COPY --from=builder /app/main .
+
+# The command to run the client binary when the container starts.
+CMD ["./main"]

@@ -1,0 +1,31 @@
+# Stage 1: Build the Go application
+FROM golang:1.24.4-alpine AS builder
+
+# Set the working directory inside the container
+WORKDIR /app/backend
+
+# Copy the entire backend directory to the working directory in the container
+COPY ./backend .
+
+# Download and cache the dependencies
+RUN go mod download
+
+# Build the server binary
+RUN go build -o /app/server .
+
+# Stage 2: Create a minimal image for the final application
+FROM alpine:3.18
+RUN apk --no-cache add ca-certificates
+
+# Set the working directory for the final image
+WORKDIR /app
+
+# Copy the server binary from the builder stage
+COPY --from=builder /app/server .
+
+# Expose the ports
+EXPOSE 50051
+EXPOSE 8080
+
+# Run the server
+CMD ["./server"]

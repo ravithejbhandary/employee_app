@@ -1,0 +1,33 @@
+services:
+  # gRPC server
+  grpc-server:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "50051:50051"
+      - "8080:8080"
+    depends_on:
+      - mongo-db
+    networks:
+      - app-network
+
+  # MongoDB database
+  mongo-db:
+    image: mongo:latest
+    container_name: mongo-db
+    ports:
+      - "27017:27017" # Default MongoDB port
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - app-network
+
+# Persistent database volume
+volumes:
+  mongo-data:
+
+# Custom bridge network
+networks:
+  app-network:
+    driver: bridge

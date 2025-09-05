@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package employee;
+
+import "google/api/annotations.proto";
+
+// Match go.mod module name + pb folder
+option go_package = "EMPLOYEE_APP/backend/pb;employee";
+
+service EmployeeService {
+  rpc GetEmployees (Empty) returns (EmployeeList) {
+    option (google.api.http) = {
+      get: "/v1/employees"
+    };
+  }
+
+  rpc CreateEmployee (Employee) returns (Employee) {
+    option (google.api.http) = {
+      post: "/v1/employees"
+      body: "*"
+    };
+  }
+
+  rpc UpdateEmployee (Employee) returns (Employee) {
+    option (google.api.http) = {
+      put: "/v1/employees/{id}"
+      body: "*"
+    };
+  }
+
+  rpc DeleteEmployee (EmployeeID) returns (Empty) {
+    option (google.api.http) = {
+      delete: "/v1/employees/{id}"
+    };
+  }
+}
+
+message Empty {}
+
+message EmployeeID {
+  string id = 1;
+}
+
+message Employee {
+  string id = 1;
+  string first_name = 2;
+  string last_name = 3;
+  string email = 4;
+  string position = 5;
+  string department = 6;
+}
+
+message EmployeeList {
+  repeated Employee employees = 1;
+}

@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # The gRPC server service
+  grpc-server:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "50051:50051" # Map the gRPC port
+    depends_on:
+      - mysql-db # The server depends on the database
+    networks:
+      - app-network
+
+  # The MySQL database service
+  mysql-db:
+    image: mysql:latest
+    container_name: mysql-db
+    ports:
+      - "3333:3306" # Map the database port
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_DATABASE: employee_db
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - app-network
+
+  # The gRPC client service
+  grpc-client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    depends_on:
+      - grpc-server
+    environment:
+      # Pass the server address to the client using the service name
+      GRPC_SERVER_ADDRESS: grpc-server:50051
+    networks:
+      - app-network
+
+# A volume for persistent database data
+volumes:
+  db-data:
+
+# A custom network for all services
+networks:
+  app-network:
+    driver: bridge

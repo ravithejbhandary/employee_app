@@ -1,0 +1,21 @@
+# grpc-client/Dockerfile
+FROM golang:1.20-alpine AS builder
+WORKDIR /app
+
+# Copy go.mod and go.sum
+COPY go.mod go.sum ./
+
+# Download dependencies
+RUN go mod download
+
+# Copy the rest of the code
+COPY . .
+
+# Build the binary
+RUN go build -o grpc-client
+
+# Final stage
+FROM alpine:latest
+WORKDIR /app
+COPY --from=builder /app/grpc-client .
+CMD ["./client"]

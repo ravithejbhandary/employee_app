@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  # gRPC + REST Gateway server
+  grpc-server:
+    build:
+      context: .                # root of EMPLOYEE_APP
+      dockerfile: backend/dockerfile
+    container_name: grpc-server
+    ports:
+      - "50051:50051"  # gRPC
+      - "8080:8080"    # REST gateway
+    depends_on:
+      - mongo-db
+    networks:
+      - app-network
+
+  # MongoDB service
+  mongo-db:
+    image: mongo:6.0
+    container_name: mongo-db
+    restart: always
+    ports:
+      - "27017:27017" # accessible locally for testing
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mongo_data:

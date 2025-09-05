@@ -1,0 +1,56 @@
+# Stage 1: Build the Go application
+FROM golang:1.24.4-alpine AS builder
+
+# Set the working directory inside the container to the module root
+WORKDIR /app
+
+# Copy go.mod and go.sum from the main directory
+COPY go.mod go.sum ./
+
+# Copy the backend source code into the container
+COPY ./backend ./backend
+
+# Download and cache the dependencies
+RUN go mod download
+
+# Install protoc and Go plugins for code generation
+RUN apk add --no-cache git protobuf protobuf-dev \
+    && go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28 \
+    && go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2 \
+    && go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@v2.20 \
+    && go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.20
+
+# Set the PATH for the installed Go binaries
+ENV PATH="$PATH:$(go env GOPATH)/bin"
+
+# Clone the googleapis repository to get the necessary .proto files for imports
+RUN git clone https://github.com/googleapis/googleapis.git /app/googleapis
+
+# Explicitly run protoc to generate the Go files, specifying the import path
+WORKDIR /app/backend
+RUN protoc -I. -I/app/googleapis \
+    --go_out=./pb --go_opt=paths=source_relative \
+    --go-grpc_out=./pb --go-grpc_opt=paths=source_relative \
+    --grpc-gateway_out=./pb --grpc-gateway_opt=paths=source_relative \
+    --openapiv2_out=./pb --openapiv2_opt=paths=source_relative \
+    employee.proto
+
+# Build the server binary
+RUN go build -o /app/server .
+
+# Stage 2: Create a minimal image for the final application
+FROM alpine:3.18
+RUN apk --no-cache add ca-certificates
+
+# Set the working directory for the final image
+WORKDIR /app
+
+# Copy the server binary from the builder stage
+COPY --from=builder /app/server .
+
+# Expose the ports
+EXPOSE 50051
+EXPOSE 8080
+
+# Run the server
+CMD ["./server"]
