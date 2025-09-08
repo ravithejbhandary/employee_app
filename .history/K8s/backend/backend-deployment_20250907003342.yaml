@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+  namespace: employee-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: :ravithej12/employee-backend:latest
+          ports:
+            - containerPort: 50051 # gRPC
+            - containerPort: 8080 # REST
+          env:
+            - name: MONGO_URI
+              value: mongodb://mongo-service:27017

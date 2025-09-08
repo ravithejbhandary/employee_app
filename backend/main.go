@@ -18,7 +18,7 @@ import (
 
 func main() {
 	// MongoDB connection
-	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://mongo-db:27017"))
+	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://mongo-service.employee-app.svc.cluster.local:27017"))
 	if err != nil {
 		log.Fatalf("Failed to create MongoDB client: %v", err)
 	}
